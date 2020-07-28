@@ -3,7 +3,7 @@
 
    Set SECRET_SSID and SECRET_PASS in arduino_secrets.h
 
-   Requirements: 
+   Requirements:
    - install ArduinoProps.zip library and dependencies (https://github.com/fauresystems/ArduinoProps)
    - help: https://github.com/xcape-io/ArduinoProps/blob/master/help/ArduinoProps_sketch.md
 */
@@ -15,10 +15,10 @@ char ssid[] = SECRET_SSID;    // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA)
 
 WifiProp prop(u8"Arduino Lights", // as MQTT client id, should be unique per client for given broker
-                  u8"Room/My room/Props/Arduino Lights/inbox",
-                  u8"Room/My room/Props/Arduino Lights/outbox",
-                  "192.168.1.53", // your MQTT server IP address
-                  1883); // your MQTT server port;
+              u8"Room/My room/Props/Arduino Lights/inbox",
+              u8"Room/My room/Props/Arduino Lights/outbox",
+              "192.168.1.53", // your MQTT server IP address
+              1883); // your MQTT server port;
 
 // Relays pinout
 #define LIGHT1 0
@@ -28,12 +28,14 @@ WifiProp prop(u8"Arduino Lights", // as MQTT client id, should be unique per cli
 #define LIGHT5 4
 #define LIGHT6 5
 
-PropDataLogical blinking(u8"blink", u8"yes", u8"no", true);
-PropDataLogical led(u8"led");
+PropDataLogical lighting(u8"lighting", u8"yes", u8"no", false);
+PropDataLogical light1(u8"light1");
+PropDataLogical light2(u8"light2");
+PropDataLogical light3(u8"light3");
+PropDataLogical light4(u8"light4");
+PropDataLogical light5(u8"light5");
+PropDataLogical light6(u8"light6");
 PropDataText rssi(u8"rssi");
-
-void blink(); // forward
-PropAction blinkAction = PropAction(1000, blink);
 
 bool wifiBegun(false);
 
@@ -41,13 +43,23 @@ void setup()
 {
   Serial.begin(9600);
 
-  prop.addData(&blinking);
-  prop.addData(&led);
+  prop.addData(&lighting);
+  prop.addData(&light1);
+  prop.addData(&light2);
+  prop.addData(&light3);
+  prop.addData(&light4);
+  prop.addData(&light5);
+  prop.addData(&light6);
   prop.addData(&rssi);
-  
+
   prop.begin(InboxMessage::run);
 
-  pinMode(LED_BUILTIN, OUTPUT); // initialize digital pin LED_BUILTIN as an output
+  pinMode(LIGHT1, OUTPUT);
+  pinMode(LIGHT2, OUTPUT);
+  pinMode(LIGHT3, OUTPUT);
+  pinMode(LIGHT4, OUTPUT);
+  pinMode(LIGHT5, OUTPUT);
+  pinMode(LIGHT6, OUTPUT);
 
   // At this point, the broker is not connected yet
 }
@@ -87,17 +99,12 @@ void loop()
 
   rssi.setValue(WiFi.RSSI() + String(" dBm")); // https://www.metageek.com/training/resources/understanding-rssi.html
 
-  led.setValue(digitalRead(LED_BUILTIN)); // read I/O
-
-  blinkAction.check(); // do your stuff, don't freeze the loop with delay() calls
-}
-
-void blink()
-{
-  if (blinking.value()) {
-    led.setValue(!led.value());
-    digitalWrite(LED_BUILTIN, led.value() ? HIGH : LOW);
-  }
+  light1.setValue(digitalRead(LIGHT1)); // read I/O
+  light2.setValue(digitalRead(LIGHT2)); 
+  light3.setValue(digitalRead(LIGHT3)); 
+  light4.setValue(digitalRead(LIGHT4)); 
+  light5.setValue(digitalRead(LIGHT5)); 
+  light6.setValue(digitalRead(LIGHT6)); 
 }
 
 void InboxMessage::run(String a) {
@@ -111,16 +118,16 @@ void InboxMessage::run(String a) {
   {
     prop.resetMcu();
   }
-  else if (a == "blink:1")
+  else if (a == "lighting:1")
   {
-    blinking.setValue(true);
+
 
     prop.sendAllData(); // all data change, we don't have to be selctive then
     prop.sendDone(a); // acknowledge prop command action
   }
-  else if (a == "blink:0")
+  else if (a == "lighting:0")
   {
-    blinking.setValue(false);
+
 
     prop.sendAllData(); // all data change, we don't have to be selctive then
     prop.sendDone(a); // acknowledge prop command action
